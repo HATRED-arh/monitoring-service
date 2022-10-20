@@ -18,4 +18,4 @@ WORKDIR /app
 COPY resources resources
 RUN mkdir database
 COPY --from=builder /app/build/libs/notifier.jar .
-ENTRYPOINT ["java", "-jar","notifier.jar"]
+ENTRYPOINT ["java", "-jar", "notifier.jar"]
