@@ -1,0 +1,8 @@
+build
+.idea
+.gradle
+gradle
+.env
+database
+domains.txt
+servers.txt
