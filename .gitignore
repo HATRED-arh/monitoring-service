@@ -4,5 +4,4 @@ build
 gradle
 .env
 database
-domains.txt
-servers.txt
+resources
