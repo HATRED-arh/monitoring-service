@@ -3,5 +3,5 @@ build
 .gradle
 gradle
 .env
-database
-resources
+database/*
+resources/*
