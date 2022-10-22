@@ -1,7 +1,7 @@
 ### Setup
 Create `servers.txt` with needed IPs separated with new line and `domains.txt` with domains in folder `resources`.
 
-Set up your `.env` according to `.env.example`.
+Set up your environment according to `.env.example`. (program does not load `.env` files yet)
 
 Run `docker build . -t monitoring:latest` and `docker run monitoring`.
 
