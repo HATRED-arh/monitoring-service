@@ -64,7 +64,7 @@ public class Ping {
                 this.setInactive(ip);
             }
             if (!text.contains("0 received") && !is_active) {
-                String message = String.format("\uD83C\uDF3F*安心*\uD83C\uDF3F\\n`%s`\nIS UP\n*IP*: `%s`", hostname, ip);
+                String message = String.format("\uD83C\uDF3F*RELIEF*\uD83C\uDF3F\\n`%s`\nIS UP\n*IP*: `%s`", hostname, ip);
                 App.sendMessage(message);
                 this.setActive(ip);
             }

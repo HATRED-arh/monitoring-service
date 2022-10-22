@@ -79,7 +79,7 @@ public class Healthcheck {
             return;
         }
         if (response.statusCode() == 200 && !is_active) {
-            String text = String.format("🌀*操作可能*🌀\n`%s`\nIS UP", domain);
+            String text = String.format("🌀*GOOD NEWS*🌀\n`%s`\nIS UP", domain);
             App.sendMessage(text);
             this.setActive(domain);
         }
