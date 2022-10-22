@@ -2,24 +2,26 @@ package notifier;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.sql.ResultSet;
 
 public class DB {
-    private final String dbName;
 
-    DB(String dbName) {
-        this.dbName = dbName;
+    DB() {
+        File db = new File(App.config.dbURL);
+        if (Files.notExists(Paths.get(App.config.dbURL).getParent())) {
+            boolean created = db.getParentFile().mkdirs();
+            if (!created) {
+                throw new RuntimeException("Could not create database.");
+            }
+        }
     }
 
     public Connection connect() {
-        String url = String.format("jdbc:sqlite:%s", dbName);
+        String url = String.format("jdbc:sqlite:%s", App.config.dbURL);
         Connection conn = null;
         try {
             conn = DriverManager.getConnection(url);
@@ -97,7 +99,8 @@ public class DB {
             System.out.println(e.getMessage());
         }
     }
-    public boolean isActive(String sql){
+
+    public boolean isActive(String sql) {
         boolean res = false;
         try (Connection conn = App.database.connect()) {
             Statement stmt = conn.createStatement();

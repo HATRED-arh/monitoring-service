@@ -11,9 +11,10 @@ import java.util.ArrayList;
 
 
 public class App {
-    public static final DB database = new DB("database/database.db");
     public static final Configuration config = new Configuration();
+    public static final DB database = new DB();
     public static final HttpClient client = HttpClient.newHttpClient();
+
     public static void sendMessage(String text) {
         String body = String.format("{\"chat_id\": \"%s\", \"text\": \"%s\", \"parse_mode\": \"MarkdownV2\"}", App.config.chatId, text);
         HttpRequest request = HttpRequest.newBuilder()
@@ -27,6 +28,7 @@ public class App {
             System.out.println(e.getMessage());
         }
     }
+
     public static void main(String[] args) {
         database.createTables();
         ArrayList<String> domains = database.updateDomains();

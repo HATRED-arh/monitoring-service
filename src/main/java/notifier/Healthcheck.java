@@ -56,17 +56,18 @@ public class Healthcheck {
                 .timeout(Duration.ofSeconds(5))
                 .build();
         HttpResponse<String> response = null;
+        boolean is_active = this.isActive(domain);
         try {
             response = client.send(request, HttpResponse.BodyHandlers.ofString());
             System.out.printf("%s %s%n", domain, response.statusCode());
         } catch (HttpTimeoutException e) {
-            if (this.isActive(domain)) {
+            if (is_active) {
                 String text = String.format("\uD83D\uDEAB*CAUTION*\uD83D\uDEAB️\n`%s`\nTIMED OUT", domain);
                 App.sendMessage(text);
                 this.setInactive(domain);
             }
         } catch (ConnectException e) {
-            if (this.isActive(domain)) {
+            if (is_active) {
                 String text = String.format("\uD83D\uDEAB*CAUTION*\uD83D\uDEAB️\n`%s`\nCONNECTION ERROR", domain);
                 App.sendMessage(text);
                 this.setInactive(domain);
@@ -77,17 +78,17 @@ public class Healthcheck {
         if (response == null) {
             return;
         }
-        if (response.statusCode() == 200 && !this.isActive(domain)) {
+        if (response.statusCode() == 200 && !is_active) {
             String text = String.format("🌀*操作可能*🌀\n`%s`\nIS UP", domain);
             App.sendMessage(text);
             this.setActive(domain);
         }
-        if (response.statusCode() == 500 && this.isActive(domain)) {
+        if (response.statusCode() == 500 && is_active) {
             String text = String.format("⚠️*WARNING*⚠️\n`%s`\nDATABASE IS DISCONNECTED", domain);
             App.sendMessage(text);
             this.setInactive(domain);
         }
-        if (response.statusCode() == 404 && this.isActive(domain)) {
+        if (response.statusCode() == 404 && is_active) {
             String text = String.format("⚠️*WARNING*⚠️\n`%s`\nBACKEND INACCESSIBLE", domain);
             App.sendMessage(text);
             this.setInactive(domain);

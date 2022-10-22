@@ -5,12 +5,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.concurrent.Callable;
 
 public class Ping {
     private final ArrayList<String> ips;
@@ -51,25 +51,27 @@ public class Ping {
 
     private void ping(String ip) {
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command("ping", "-c1", ip);
+        String hostname = this.hostname(ip);
+        processBuilder.command("ping", "-c1", "-W", "0.1", ip);
         try {
             Process process = processBuilder.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String text = reader.lines().collect(Collectors.joining());
-            if (text.contains("0 received") && this.isActive(ip)) {
-                String message = String.format("\uD83D\uDEA8*ALERT*\uD83D\uDEA8\n`%s` IS DOWN\n*IP*: `%s`", this.hostname(ip), ip);
+            boolean is_active = this.isActive(ip);
+            if (text.contains("0 received") && is_active) {
+                String message = String.format("\uD83D\uDEA8*ALERT*\uD83D\uDEA8\n`%s`\nIS DOWN\n*IP*: `%s`", hostname, ip);
                 App.sendMessage(message);
                 this.setInactive(ip);
             }
-            if (!text.contains("0 received") && !this.isActive(ip)) {
-                String message = String.format("\uD83C\uDF3F*安心*\uD83C\uDF3F\\n`%s` IS UP\n*IP*: `%s`", this.hostname(ip), ip);
+            if (!text.contains("0 received") && !is_active) {
+                String message = String.format("\uD83C\uDF3F*安心*\uD83C\uDF3F\\n`%s`\nIS UP\n*IP*: `%s`", hostname, ip);
                 App.sendMessage(message);
                 this.setActive(ip);
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
-        System.out.println(hostname(ip));
+        System.out.println(hostname);
     }
 
     private String hostname(String ip) {
