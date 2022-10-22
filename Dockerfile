@@ -7,15 +7,16 @@ RUN unzip -d /opt/gradle gradle-7.5.1-bin.zip
 ENV PATH=$PATH:/opt/gradle/gradle-7.5.1/bin
 WORKDIR /app
 COPY src src
-COPY gradle gradle
 COPY build.gradle .
 COPY settings.gradle .
 COPY gradlew .
 RUN gradle build
 
 FROM azul/zulu-openjdk-alpine:18-latest
+RUN apk update
+RUN apk add sqlite bind-tools iputils
 WORKDIR /app
-COPY resources resources
 RUN mkdir database
+COPY resources resources
 COPY --from=builder /app/build/libs/notifier.jar .
 ENTRYPOINT ["java", "-jar", "notifier.jar"]
