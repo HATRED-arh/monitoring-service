@@ -51,7 +51,7 @@ public class Healthcheck {
     }
 
     private void healthcheck(String domain) {
-        URI uri = URI.create(String.format("https://%s/api/healthcheck", domain));
+        URI uri = URI.create(String.format("https://%s/healthcheck", domain));
         HttpRequest request = HttpRequest.newBuilder(uri).GET()
                 .timeout(Duration.ofSeconds(5))
                 .build();

@@ -7,4 +7,4 @@ Run `docker build . -t monitoring:latest` and `docker run monitoring`.
 
 If everything is ok you should see logs. (they are bad, have to setup proper logging)
 
-To check domains, domain needs `/api/healthcheck` route.
+To check domains, domain needs `/healthcheck` route.
