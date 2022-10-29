@@ -22,7 +22,7 @@ public class Ping {
         this.ips = ips;
         this.workers = workers;
         this.batch_size = batch_size;
-        this.pattern = Pattern.compile(".*name = (.*).\n");
+        this.pattern = Pattern.compile(".*name = (.*)\n");
     }
 
     @SuppressWarnings("InfiniteLoopStatement")
@@ -58,12 +58,13 @@ public class Ping {
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String text = reader.lines().collect(Collectors.joining());
             boolean is_active = this.isActive(ip);
-            if (text.contains("0 received") && is_active) {
+            boolean zero_received = text.contains("0 packets received");
+            if (zero_received && is_active) {
                 String message = String.format("\uD83D\uDEA8*ALERT*\uD83D\uDEA8\n`%s`\nIS DOWN\n*IP*: `%s`", hostname, ip);
                 App.sendMessage(message);
                 this.setInactive(ip);
             }
-            if (!text.contains("0 received") && !is_active) {
+            if (!zero_received && !is_active) {
                 String message = String.format("\uD83C\uDF3F*RELIEF*\uD83C\uDF3F\\n`%s`\nIS UP\n*IP*: `%s`", hostname, ip);
                 App.sendMessage(message);
                 this.setActive(ip);
