@@ -33,8 +33,8 @@ public class App {
         database.createTables();
         ArrayList<String> domains = database.updateDomains();
         ArrayList<String> ips = database.updateServers();
-        Healthcheck healthcheck = new Healthcheck(domains, 4, 40);
-        Ping ping = new Ping(ips, 4, 40);
+        Healthcheck healthcheck = new Healthcheck(domains, 4);
+        Ping ping = new Ping(ips, 4);
         Thread healthcheck_thread = new Thread(healthcheck::healthcheckLoop);
         Thread ping_thread = new Thread(ping::pingLoop);
         healthcheck_thread.start();

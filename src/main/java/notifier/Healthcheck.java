@@ -8,7 +8,6 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,35 +16,31 @@ public class Healthcheck {
     private final HttpClient client;
     private final ArrayList<String> domains;
     private final int workers;
-    private final int batch_size;
 
-    Healthcheck(ArrayList<String> domains, int workers, int batch_size) {
+    Healthcheck(ArrayList<String> domains, int workers) {
         this.domains = domains;
         this.workers = workers;
-        this.batch_size = batch_size;
         this.client = HttpClient.newHttpClient();
     }
-
-    @SuppressWarnings("InfiniteLoopStatement")
     public void healthcheckLoop() {
         ExecutorService pool = Executors.newFixedThreadPool(this.workers);
-        List<Callable<Void>> tasks = new ArrayList<>();
-        while (true) {
-            for (String domain : this.domains) {
-                tasks.add(() -> {
+        ArrayList<Callable<Void>> tasks = new ArrayList<>();
+        for (String domain : domains) {
+            tasks.add(() -> {
+                try {
                     Thread.sleep(500);
-                    healthcheck(domain);
-                    return null;
-                });
-                if (tasks.size() >= this.batch_size) {
-                    try {
-                        pool.invokeAll(tasks);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    } finally {
-                        tasks.clear();
-                    }
+                } catch (InterruptedException ignore) {
+
                 }
+                healthcheck(domain);
+                return null;
+            });
+        }
+        while (!pool.isShutdown()) {
+            try {
+                pool.invokeAll(tasks);
+            } catch (InterruptedException e) {
+                System.err.println(e.getMessage());
             }
         }
     }

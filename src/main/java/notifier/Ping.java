@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,36 +14,33 @@ import java.util.stream.Collectors;
 public class Ping {
     private final ArrayList<String> ips;
     private final int workers;
-    private final int batch_size;
     private final Pattern pattern;
 
-    Ping(ArrayList<String> ips, int workers, int batch_size) {
+    Ping(ArrayList<String> ips, int workers) {
         this.ips = ips;
         this.workers = workers;
-        this.batch_size = batch_size;
         this.pattern = Pattern.compile(".*name = (.*)\n");
     }
 
-    @SuppressWarnings("InfiniteLoopStatement")
     public void pingLoop() {
         ExecutorService pool = Executors.newFixedThreadPool(this.workers);
-        List<Callable<Void>> tasks = new ArrayList<>();
-        while (true) {
-            for (String ip : ips) {
-                tasks.add(() -> {
-                    Thread.sleep(500);
-                    ping(ip);
-                    return null;
-                });
-            }
-            if (tasks.size() >= this.batch_size) {
+        ArrayList<Callable<Void>> tasks = new ArrayList<>();
+        for (String ip : this.ips) {
+            tasks.add(() -> {
                 try {
-                    pool.invokeAll(tasks);
-                } catch (Exception e) {
-                    System.out.print(e.getMessage());
-                } finally {
-                    tasks.clear();
+                    Thread.sleep(500);
+                } catch (InterruptedException ignore) {
+
                 }
+                ping(ip);
+                return null;
+            });
+        }
+        while (!pool.isShutdown()) {
+            try {
+                pool.invokeAll(tasks);
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
             }
         }
     }
