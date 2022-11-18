@@ -36,8 +36,8 @@ public class App {
         Healthcheck healthcheck = new Healthcheck(domains, 4, 40);
         Ping ping = new Ping(ips, 4, 40);
         Thread healthcheck_thread = new Thread(healthcheck::healthcheckLoop);
-        Thread pingonator_thread = new Thread(ping::pingLoop);
+        Thread ping_thread = new Thread(ping::pingLoop);
         healthcheck_thread.start();
-        pingonator_thread.start();
+        ping_thread.start();
     }
 }
