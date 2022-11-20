@@ -1,4 +1,4 @@
-FROM bellsoft/liberica-openjdk-alpine:18 as builder
+FROM bellsoft/liberica-openjdk-alpine-musl:18 as builder
 RUN apk update
 RUN apk add wget zip
 RUN wget https://services.gradle.org/distributions/gradle-7.5.1-bin.zip
@@ -12,7 +12,7 @@ COPY settings.gradle .
 COPY gradlew .
 RUN gradle build
 
-FROM bellsoft/liberica-openjre-alpine:18
+FROM bellsoft/liberica-openjre-alpine-musl:18
 WORKDIR /app
 RUN mkdir database
 COPY resources resources
