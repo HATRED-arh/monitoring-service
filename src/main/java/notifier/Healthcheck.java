@@ -1,5 +1,8 @@
 package notifier;
 
+import notifier.interfaces.MessageSender;
+
+import javax.net.ssl.SSLHandshakeException;
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -12,16 +15,16 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Healthcheck {
-    private final HttpClient client;
+public class Healthcheck extends MessageSender {
     private final ArrayList<String> domains;
     private final int workers;
 
     Healthcheck(ArrayList<String> domains, int workers) {
+        super(HttpClient.newHttpClient());
         this.domains = domains;
         this.workers = workers;
-        this.client = HttpClient.newHttpClient();
     }
+
     public void healthcheckLoop() {
         ExecutorService pool = Executors.newFixedThreadPool(this.workers);
         ArrayList<Callable<Void>> tasks = new ArrayList<>();
@@ -45,27 +48,33 @@ public class Healthcheck {
         }
     }
 
+
     private void healthcheck(String domain) {
-        URI uri = URI.create(String.format("https://%s/healthcheck", domain));
+        URI uri = URI.create(String.format("https://%s/api/healthcheck", domain));
         HttpRequest request = HttpRequest.newBuilder(uri).GET()
-                .timeout(Duration.ofSeconds(5))
+                .timeout(Duration.ofSeconds(10))
                 .build();
-        HttpResponse<String> response = null;
+        HttpResponse<Void> response = null;
         boolean is_active = this.isActive(domain);
         try {
-            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            response = this.client.send(request, HttpResponse.BodyHandlers.discarding());
             System.out.printf("%s %s%n", domain, response.statusCode());
         } catch (HttpTimeoutException e) {
             if (is_active) {
                 String text = String.format("\uD83D\uDEAB*CAUTION*\uD83D\uDEAB️\n`%s`\nTIMED OUT", domain);
-                App.sendMessage(text);
-                this.setInactive(domain);
+                this.sendMessage(text);
+                this.setState(domain, false);
             }
         } catch (ConnectException e) {
             if (is_active) {
                 String text = String.format("\uD83D\uDEAB*CAUTION*\uD83D\uDEAB️\n`%s`\nCONNECTION ERROR", domain);
-                App.sendMessage(text);
-                this.setInactive(domain);
+                this.sendMessage(text);
+                this.setState(domain, false);
+            }
+        } catch (SSLHandshakeException e) {
+            System.err.println("Could not find certificate: " + domain);
+            if (is_active) {
+                this.setState(domain, false);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -75,34 +84,28 @@ public class Healthcheck {
         }
         if (response.statusCode() == 200 && !is_active) {
             String text = String.format("🌀*GOOD NEWS*🌀\n`%s`\nIS UP", domain);
-            App.sendMessage(text);
-            this.setActive(domain);
+            this.sendMessage(text);
+            this.setState(domain, true);
         }
         if (response.statusCode() == 500 && is_active) {
             String text = String.format("⚠️*WARNING*⚠️\n`%s`\nDATABASE IS DISCONNECTED", domain);
-            App.sendMessage(text);
-            this.setInactive(domain);
+            this.sendMessage(text);
+            this.setState(domain, false);
         }
         if (response.statusCode() == 404 && is_active) {
             String text = String.format("⚠️*WARNING*⚠️\n`%s`\nBACKEND INACCESSIBLE", domain);
-            App.sendMessage(text);
-            this.setInactive(domain);
+            this.sendMessage(text);
+            this.setState(domain, false);
         }
     }
-
-
+    
     private boolean isActive(String domain) {
         String sql = String.format("SELECT active FROM domains WHERE domain = '%s'", domain);
         return App.database.isActive(sql);
     }
 
-    private void setActive(String domain) {
-        String sql = String.format("UPDATE domains SET active = 1 WHERE domain = '%s'", domain);
-        App.database.executeStatement(sql);
-    }
-
-    private void setInactive(String domain) {
-        String sql = String.format("UPDATE domains SET active = 0 WHERE domain = '%s'", domain);
+    private void setState(String ip, boolean active) {
+        String sql = String.format("UPDATE servers SET active = %d WHERE ip = '%s'", Boolean.compare(active, false), ip);
         App.database.executeStatement(sql);
     }
 }
