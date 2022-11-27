@@ -104,8 +104,8 @@ public class Healthcheck extends MessageSender {
         return App.database.isActive(sql);
     }
 
-    private void setState(String ip, boolean active) {
-        String sql = String.format("UPDATE servers SET active = %d WHERE ip = '%s'", Boolean.compare(active, false), ip);
+    private void setState(String domain, boolean active) {
+        String sql = String.format("UPDATE domains SET active = %d WHERE domain = '%s'", Boolean.compare(active, false), domain);
         App.database.executeStatement(sql);
     }
 }
